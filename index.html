@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>まいまいの ほしぞら工房</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+
+<body>
+
+    <div id="main-wrapper">
+
+        <div id="game-container">
+            <canvas id="game-canvas"></canvas>
+
+            <!-- タイトル画面 -->
+            <div id="screen-title" class="overlay" style="display: flex;">
+                <button id="btn-start" class="start-btn">はじめる</button>
+            </div>
+
+            <!-- オープニング画面 -->
+            <div id="screen-op" class="overlay" style="display: none;">
+                <div class="op-text-container">
+                    <div class="op-line op-line-1">夜空から ほしがなくなってしまいました。</div>
+                    <div class="op-line op-line-2">ほしをうちあげて</div>
+                    <div class="op-line op-line-3">
+                        きれいな ほしぞらをつくりましょう。
+                        <div class="op-text-sub">The stars have disappeared from the night sky.<br>Let's launch stars
+                            and create a beautiful starry sky.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- デモ終了画面 -->
+            <div id="screen-demo-end" class="overlay" style="display: none;">
+                <div class="demo-end-text-container">
+                    <div class="demo-end-line">デモ版はここまでです。<br>遊んでいただきありがとうございました！</div>
+                    <div class="demo-end-line" style="margin-top: 20px;">製品版も頑張って作るので応援してね！</div>
+                    <div class="demo-end-text-sub">
+                        This is the end of the demo.<br>
+                        Thank you for playing!<br>
+                        I'll do my best to complete the full version,<br>
+                        so please support me!
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステージ遷移演出 -->
+            <div id="screen-transition">
+                <div id="location-name">ほしあかりの森</div>
+            </div>
+
+            <!-- アイテムカウンター (ほしのもと) -->
+            <div id="item-counter">
+                <img src="image/craft_image/star_1.png" class="counter-icon-img" alt="ほしのもと">
+                <span id="score-text">0</span>
+            </div>
+
+            <!-- 星カウンター -->
+            <div id="star-counter">
+                <img src="image/UI/star_Ui.png" class="counter-icon-img" alt="ほし">
+                <span id="star-text">0</span>
+            </div>
+
+            <!-- HPカウンター -->
+            <div id="hp-counter">
+            </div>
+
+            <!-- ロード画面 -->
+            <div id="screen-load" class="overlay">
+                <div class="modal">
+                    <h1>ゲームをはじめる</h1>
+                    <p>マップデータが見つかりませんでした。</p>
+                    <label for="file-input" class="file-label">📂 マップ(JSON)を選択</label>
+                    <input type="file" id="file-input" accept=".json">
+
+                    <!-- 譜面データ読み込み -->
+                    <div style="margin-top:15px; border-top:1px dashed #aaa; padding-top:10px;">
+                        <p style="font-size:0.9rem; color:#555; margin-bottom:5px;">かた抜きゲーム用譜面 (任意)</p>
+                        <label for="chart-input" class="file-label"
+                            style="background:#468; border-color:#57a; font-size:0.9rem;">🎼 譜面(JSON)を選択</label>
+                        <input type="file" id="chart-input" accept=".json">
+                        <div id="chart-status" style="font-size:0.8rem; color:#4a4; margin-top:5px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ゲームオーバー画面 -->
+            <div id="screen-gameover" class="overlay">
+                <div class="modal">
+                    <h1>GAME OVER</h1>
+                    <p>やられちゃった...</p>
+                    <button class="retry-btn" onclick="resetGame()">🔄 もう一回！</button>
+                </div>
+            </div>
+
+            <!-- クリア画面 -->
+            <div id="screen-clear" class="overlay">
+                <div class="modal">
+                    <h2 class="clear-title">素材あつめしゅうりょう！</h2>
+                    <p>おつかれさま！</p>
+                    <div class="button-group">
+                        <button class="retry-btn" onclick="resetGame()">もう一度さがす</button>
+                        <button class="atelier-btn" onclick="goToAtelier()">工房へもどる</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- データリセット確認画面 -->
+            <div id="screen-reset-confirm" class="overlay">
+                <div class="modal">
+                    <h2>データをリセットしますか？</h2>
+                    <p>描いた星空が<br>全て消えてしまいます。</p>
+                    <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+                        <button class="retry-btn" id="btn-reset-yes">はい</button>
+                        <button class="atelier-btn" id="btn-reset-no">いいえ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- タッチ操作UI -->
+            <div id="ui-container">
+                <div class="dpad">
+                    <div style="grid-column:2; grid-row:1;"></div>
+                    <div id="btn-left" class="dpad-btn">←</div>
+                    <div id="btn-down" class="dpad-btn">↓</div>
+                    <div id="btn-right" class="dpad-btn">→</div>
+                </div>
+
+                <div class="center-panel">
+                </div>
+
+                <div class="action-pad">
+                    <div id="btn-attack" class="action-btn btn-attack">B</div>
+                    <div id="btn-jump" class="action-btn btn-jump">A</div>
+                </div>
+            </div>
+
+            <!-- チュートリアル・ストーリー画面 -->
+            <div id="screen-story" class="overlay" style="display: none;">
+                <div id="story-bg"></div>
+                <img id="story-char" src="image/tutorial/siromai.png" alt="char">
+            </div>
+
+            <!-- 会話ウィンドウ (最前面レイヤー) -->
+            <div id="dialogue-wrap">
+                <div class="html-dialogue-box">
+                    <div class="html-dialogue-name">しろまいまい</div>
+                    <div id="dialogue-text-html" class="html-dialogue-text"></div>
+                </div>
+            </div>
+
+            <!-- コントロールパネル -->
+            <div id="control-panel">
+                <div id="btn-fullscreen" class="func-btn" title="フルスクリーン">⛶</div>
+                <div id="btn-mute" class="func-btn" title="ミュート">🔊</div>
+                <div id="btn-settings" class="func-btn" title="データリセット">⚙️</div>
+            </div>
+
+        </div>
+
+        <script src="js/audio.js?v=4.0"></script>
+        <script src="js/constants.js?v=4.0"></script>
+        <script src="js/engine.js?v=4.1"></script>
+
+        <!-- クラフト分割 -->
+        <script src="js/craft_manager.js?v=4.2"></script>
+        <script src="js/craft1.js?v=4.1"></script>
+        <script src="js/craft2.js?v=4.2"></script>
+        <script src="js/craft3.js?v=4.1"></script>
+        <script src="js/craft4.js?v=4.1"></script>
+
+        <!-- 新機能 -->
+        <script src="js/sky_manager.js?v=2.0"></script>
+        <script src="js/launch_manager.js?v=2.0"></script>
+        <script src="js/data.js?v=1.0"></script>
+
+        <script src="js/game.js?v=5.0"></script>
+
+        <script>
+            // 譜面読み込み用スクリプト
+            document.getElementById('chart-input').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (Array.isArray(data)) {
+                            // CraftManagerにデータを渡す
+                            if (typeof CraftManager !== 'undefined') {
+                                CraftManager.loadChart(data);
+                                document.getElementById('chart-status').textContent = `「${file.name}」を読み込みました`;
+                            }
+                        } else {
+                            alert("譜面データの形式が正しくありません");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert("読み込みに失敗しました");
+                    }
+                };
+                reader.readAsText(file);
+            });
+        </script>
+    </div>
+</body>
+
+</html>

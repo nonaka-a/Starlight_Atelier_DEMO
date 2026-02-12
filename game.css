@@ -1,0 +1,783 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap');
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: fixed;
+    user-select: none;
+    -webkit-user-select: none;
+    overscroll-behavior: none;
+    /* iPadでのスクロール・バウンスによる中断防止 */
+    background-color: #222;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    touch-action: none;
+    /* iPadでの長押し中断対策 */
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#main-wrapper {
+    position: relative;
+    width: 1000px;
+    height: 600px;
+    transform-origin: center center;
+    background-color: #000;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #52419c;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+#ui-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    display: block;
+}
+
+.dpad,
+.action-pad,
+.center-panel,
+.func-btn {
+    pointer-events: auto;
+}
+
+.dpad {
+    position: absolute;
+    bottom: 30px;
+    left: 40px;
+    display: grid;
+    grid-template-columns: 75px 75px 75px;
+    grid-template-rows: 50px 75px;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+    /* iPadでの不用意なジェスチャー防止 */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.dpad-btn {
+    width: 75px;
+    height: 75px;
+    background: #444;
+    border-radius: 12px;
+    border: 2px solid #666;
+    color: #fff;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: none;
+    box-shadow: 0 4px 0 #111;
+    opacity: 0.9;
+    /* iPadでの長押し中断・青い選択枠防止 */
+    -webkit-user-callout: none;
+    -webkit-user-drag: none;
+}
+
+.dpad-btn:active,
+.dpad-btn.active {
+    background: #66aa44;
+    border-color: #88cc66;
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #111;
+}
+
+#btn-left {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+#btn-down {
+    grid-column: 2;
+    grid-row: 2;
+    transform: translateY(0);
+}
+
+#btn-down:active,
+#btn-down.active {
+    transform: translateY(4px);
+}
+
+#btn-right {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+
+.center-panel {
+    display: none;
+}
+
+.func-btn {
+    width: 50px;
+    height: 50px;
+    background: #555;
+    border: 1px solid #777;
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 0 #111;
+    touch-action: none;
+    opacity: 0.9;
+}
+
+.func-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #111;
+}
+
+.action-pad {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.action-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #666;
+    color: #fff;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #222;
+    touch-action: none;
+    opacity: 0.9;
+}
+
+.action-btn:active,
+.action-btn.active {
+    box-shadow: 0 0 0 #222;
+    transform: translateY(6px);
+}
+
+.btn-jump {
+    background: #d64545;
+    border-color: #ff6b6b;
+    margin-bottom: 20px;
+}
+
+.btn-attack {
+    background: #4488dd;
+    border-color: #66aaff;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    display: none;
+}
+
+.modal {
+    background: #fff;
+    padding: 30px 50px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 0 #ddd, 0 15px 20px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 80%;
+    color: #333;
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+h1,
+h2 {
+    margin: 0 0 15px 0;
+    color: #ff6b6b;
+    text-shadow: 2px 2px 0 #ffd3d3;
+}
+
+h2.clear-title {
+    color: #4ecdc4;
+    text-shadow: 2px 2px 0 #d1f7f5;
+}
+
+p {
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #555;
+}
+
+button.retry-btn,
+button.atelier-btn,
+.file-label {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #d64545;
+    transition: transform 0.1s, box-shadow 0.1s;
+    text-decoration: none;
+    display: inline-block;
+    font-family: inherit;
+}
+
+button.retry-btn:active,
+button.atelier-btn:active,
+.file-label:active {
+    transform: translateY(5px);
+    box-shadow: 0 0 0 #d64545;
+}
+
+button.retry-btn {
+    background-color: #4ecdc4;
+    box-shadow: 0 5px 0 #36b0a8;
+}
+
+button.retry-btn:active {
+    box-shadow: 0 0 0 #36b0a8;
+}
+
+button.atelier-btn {
+    background-color: #ffaa00;
+    box-shadow: 0 5px 0 #cc8800;
+    margin-left: 10px;
+}
+
+button.atelier-btn:active {
+    box-shadow: 0 0 0 #cc8800;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+#item-counter {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    border: 3px solid #ffaa00;
+    color: #d35400;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    z-index: 150;
+    pointer-events: none;
+}
+
+#star-counter {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    border: 3px solid #8233ff;
+    color: #6622dd;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    z-index: 150;
+    pointer-events: none;
+}
+
+.counter-icon-img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.counter-icon {
+    display: none;
+}
+
+#world-ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.world-window {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+}
+
+#screen-transition {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+#location-name {
+    color: #fff;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 64px;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 0, 0.3);
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-in-text {
+    animation: fadeInName 2.2s forwards;
+}
+
+@keyframes fadeInName {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    85% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+#screen-transition.fade-out {
+    animation: fadeOutScreen 1s forwards;
+}
+
+@keyframes fadeOutScreen {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+#control-panel {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 6000;
+    pointer-events: auto;
+}
+
+#hp-counter {
+    position: absolute;
+    top: 20px;
+    left: 160px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 1500;
+    pointer-events: none;
+}
+
+.heart-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+    animation: heartBeat 4s infinite ease-in-out;
+}
+
+@keyframes heartBeat {
+    0% {
+        transform: scale(1);
+    }
+
+    7% {
+        transform: scale(1.15);
+    }
+
+    14% {
+        transform: scale(1);
+    }
+
+    21% {
+        transform: scale(1.1);
+    }
+
+    28% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* --- タイトル画面 --- */
+#screen-title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 600px;
+    background: url('image/title.jpg') no-repeat center center;
+    background-size: cover;
+    z-index: 5000;
+}
+
+.start-btn {
+    position: absolute;
+    bottom: 100px;
+    right: 140px;
+    padding: 10px 40px;
+    font-size: 1.2rem;
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #d64545;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: 800;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.start-btn:active {
+    transform: translateY(5px) scale(1.05);
+    box-shadow: 0 0 0 #d64545;
+}
+
+/* --- 会話ウィンドウ (HTML) --- */
+#dialogue-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 600px;
+    z-index: 2000;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 30px;
+    pointer-events: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    transition: opacity 0.5s ease;
+}
+
+.html-dialogue-box {
+    width: 940px;
+    height: 180px;
+    background: rgba(255, 249, 238, 0.95);
+    border: 6px solid #ffaa00;
+    border-radius: 15px;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+    position: relative;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 60px;
+    box-sizing: border-box;
+    cursor: pointer;
+    animation: dialoguePopIn 0.25s ease-out;
+}
+
+@keyframes dialoguePopIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.html-dialogue-name {
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    background: #ffaa00;
+    color: #fff;
+    padding: 2px 20px;
+    /* テキストを若干下に調整 */
+    padding-top: 6px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 20px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.html-dialogue-text {
+    color: #333;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: left;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.html-dialogue-guide {
+    position: absolute;
+    bottom: 15px;
+    color: #888;
+    font-size: 16px;
+}
+
+/* --- オープニング画面 --- */
+#screen-op {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 600px;
+    background-color: #000;
+    background-image: url('image/tutorial/tutorialOP_BG.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 5500;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* --- デモ終了画面 --- */
+#screen-demo-end {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 600px;
+    background-color: #000;
+    background-image: url('image/tutorial/tutorialEND_BG.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 5600;
+    display: none;
+    cursor: pointer;
+}
+
+.demo-end-text-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 60px;
+    box-sizing: border-box;
+}
+
+.demo-end-line {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.6;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 2px 2px 4px rgba(0, 0, 0, 1.0);
+    text-align: left;
+    opacity: 0;
+    animation: opFadeIn 1.5s forwards;
+}
+
+.demo-end-text-sub {
+    position: absolute;
+    bottom: 80px;
+    right: 60px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: right;
+    opacity: 0;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    animation: opFadeIn 1.5s forwards;
+    animation-delay: 1s;
+}
+
+.op-text-container {
+    padding: 40px 60px;
+}
+
+.op-line {
+    opacity: 0;
+    color: #fff;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 2px 2px 4px rgba(0, 0, 0, 1.0);
+    animation: opFadeIn 1.5s forwards;
+}
+
+.op-line-1 {
+    animation-delay: 0.8s;
+}
+
+.op-line-2 {
+    animation-delay: 2.3s;
+}
+
+.op-line-3 {
+    animation-delay: 3.8s;
+}
+
+@keyframes opFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.op-text-sub {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-top: 25px;
+    opacity: 0.9;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+/* --- チュートリアル・ストーリー画面 --- */
+#screen-story {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 600px;
+    background-color: #000;
+    z-index: 1800;
+    /* dialogue-wrap (2000) より下、他オーバーレイより上 */
+    display: none;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+#story-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('image/tutorial/tutorial_siro_BG.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+#story-char {
+    position: absolute;
+    top: 73%;
+    /* キャラクターの位置を調整 (少し大きく、少し上に) */
+    left: 50%;
+    transform: translate(-50%, -100%);
+    max-height: 75%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+}
