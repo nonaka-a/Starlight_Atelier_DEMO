@@ -71,7 +71,7 @@ let score = 0; // 現在のステージ内での「ほしのもと」取得数
  * --- データマネージャー (セーブ・ロード) ---
  */
 const DataManager = {
-    SAVE_KEY: 'hoshizora_save_v1',
+    SAVE_KEY: 'hoshizora_save_demo_v1',
     isResetting: false,
 
     save: function () {
